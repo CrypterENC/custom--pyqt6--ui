@@ -1,0 +1,10 @@
+# Core dependency
+PyQt6>=6.0.0
+
+# Development dependencies (optional)
+# Uncomment to install: pip install -r requirements.txt
+# build>=0.10.0
+# twine>=4.0.0
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0
