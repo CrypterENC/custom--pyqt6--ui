@@ -20,6 +20,8 @@ Modern, reusable PyQt6 UI components with glassmorphism effects and smooth anima
    - [CustomLabel](#customlabel)
    - [CustomDropdown](#customdropdown)
    - [CustomMessageDialog](#custommessagedialog)
+   - [CustomMenu](#custommenu)
+   - [CustomScrollBar](#customscrollbar)
 5. [CustomMainWindow Guide](#custommainwindow-guide)
 6. [Gradient System](#gradient-system)
    - [Linear Gradients](#linear-gradients)
@@ -392,6 +394,212 @@ btn = CustomButton(
 btn.clicked.connect(lambda: print("Custom button clicked!"))
 self.add_content(btn)
 ```
+
+---
+
+### CustomLabel
+
+A reusable, customizable label widget with global color palette support.
+
+**Constructor Parameters:**
+```python
+CustomLabel(
+    parent=None,
+    text="Label",
+    size=(100, 30),      # width, height in pixels
+    position=(0, 0),     # x, y coordinates
+    font_size=10,
+    bold=False,
+    color=None           # Text color (uses global palette if None)
+)
+```
+
+**Key Methods:**
+- `set_position(x, y)` - Change label position at runtime
+
+**Example Usage:**
+```python
+from custom_ui_package import CustomLabel
+
+# Basic label
+label = CustomLabel(
+    parent=self,
+    text="Hello World",
+    size=(150, 30),
+    font_size=12,
+    bold=True
+)
+
+# With custom color
+label = CustomLabel(
+    parent=self,
+    text="Custom Color Label",
+    color='#a855f7',
+    font_size=14
+)
+
+# Update position at runtime
+label.set_position(100, 50)
+```
+
+---
+
+### CustomMenu
+
+A modern menu component with glassmorphism effects and smooth animations.
+
+**Constructor Parameters:**
+```python
+CustomMenu(
+    parent=None,
+    title='',                          # Menu title
+    bg_color=None,                     # Background color (uses global surface)
+    text_color=None,                   # Text color (uses global text)
+    hover_color=None,                  # Hover color (uses global primary)
+    border_color=None,                 # Border color (uses global border)
+    border_width=1,                    # Border width in pixels
+    border_radius=8,                   # Border radius in pixels
+    font_size=11,                      # Font size in pixels
+    font_family='Segoe UI',            # Font family
+    bold=False,                        # Bold font
+    opacity=0.95,                      # Background opacity (0-1)
+    icon_size=16,                      # Icon size in pixels
+    item_height=32,                    # Menu item height
+    item_padding=10,                   # Item padding in pixels
+    animation_duration=150             # Animation duration in ms
+)
+```
+
+**Key Methods:**
+- `add_item(text, callback=None, icon_path=None, shortcut=None, enabled=True, checkable=False, checked=False)` - Add menu item
+- `add_separator()` - Add separator line
+- `add_submenu(title, parent=None)` - Add submenu
+- `update_colors(bg_color, text_color, hover_color, border_color)` - Update colors at runtime
+- `update_styling(font_size, font_family, bold, border_radius, item_height, item_padding)` - Update styling
+- `set_opacity(opacity)` - Set background opacity
+- `clear_items()` - Clear all items
+- `get_item_by_text(text)` - Get item by text
+- `enable_item(text, enabled)` - Enable/disable item
+- `check_item(text, checked)` - Check/uncheck item
+- `is_item_checked(text)` - Check if item is checked
+
+**Signals:**
+- `item_hovered(QAction)` - Emitted when item is hovered
+- `item_clicked(QAction)` - Emitted when item is clicked
+
+**Example Usage:**
+```python
+from custom_ui_package import CustomMenu
+
+# Basic menu
+menu = CustomMenu(title='File')
+menu.add_item('New', callback=lambda: print('New'))
+menu.add_item('Open', callback=lambda: print('Open'))
+menu.add_separator()
+menu.add_item('Exit', callback=lambda: print('Exit'))
+
+# Custom colors
+menu = CustomMenu(
+    title='Edit',
+    bg_color='#1a0f2e',
+    text_color='#f3e8ff',
+    hover_color='#a855f7',
+    border_color='rgba(168, 85, 247, 0.3)'
+)
+
+# With icons and shortcuts
+menu.add_item('Copy', icon_path='path/to/copy.png', shortcut='Ctrl+C')
+menu.add_item('Paste', icon_path='path/to/paste.png', shortcut='Ctrl+V')
+
+# Submenu
+submenu = menu.add_submenu('Recent Files')
+submenu.add_item('File 1.txt')
+submenu.add_item('File 2.txt')
+
+# Checkable items
+menu.add_item('Show Grid', checkable=True, checked=True)
+
+# Connect to signals
+menu.item_clicked.connect(lambda action: print(f"Clicked: {action.text()}"))
+```
+
+---
+
+### CustomScrollBar
+
+A modern scrollbar component with glassmorphism effects.
+
+**Constructor Parameters:**
+```python
+CustomScrollBar(
+    orientation=Qt.Orientation.Vertical,  # Qt.Vertical or Qt.Horizontal
+    parent=None,
+    handle_color=None,                    # Handle color (uses global primary)
+    handle_hover_color=None,              # Hover color (auto-lightened)
+    background_color=None,                # Background color (uses global surface)
+    border_color=None,                    # Border color (uses global border)
+    border_width=1,                       # Border width in pixels
+    border_radius=6,                      # Border radius in pixels
+    handle_width=8,                       # Handle width (for vertical)
+    handle_height=8,                      # Handle height (for horizontal)
+    opacity=0.9,                          # Background opacity (0-1)
+    hover_opacity=1.0,                    # Hover opacity (0-1)
+    min_handle_size=20                    # Minimum handle size
+)
+```
+
+**Variants:**
+- `CustomScrollBar` - Generic scrollbar
+- `CustomVerticalScrollBar` - Vertical scrollbar (convenience class)
+- `CustomHorizontalScrollBar` - Horizontal scrollbar (convenience class)
+
+**Key Methods:**
+- `update_colors(handle_color, handle_hover_color, background_color, border_color)` - Update colors
+- `update_styling(handle_width, handle_height, border_radius, opacity, hover_opacity)` - Update styling
+- `set_opacity(opacity)` - Set background opacity
+- `set_hover_opacity(opacity)` - Set hover opacity
+
+**Example Usage:**
+```python
+from custom_ui_package import CustomVerticalScrollBar, CustomHorizontalScrollBar
+from PyQt6.QtCore import Qt
+
+# Vertical scrollbar
+v_scrollbar = CustomVerticalScrollBar(
+    handle_color='#a855f7',
+    handle_hover_color='#d946ef',
+    background_color='#1a0f2e'
+)
+
+# Horizontal scrollbar
+h_scrollbar = CustomHorizontalScrollBar(
+    handle_color='#a855f7',
+    handle_hover_color='#d946ef'
+)
+
+# Custom styling
+scrollbar = CustomVerticalScrollBar(
+    handle_width=12,
+    border_radius=8,
+    opacity=0.8,
+    hover_opacity=1.0
+)
+
+# Update colors at runtime
+scrollbar.update_colors(
+    handle_color='#ec4899',
+    background_color='#2d1b4e'
+)
+
+# Update styling at runtime
+scrollbar.update_styling(
+    handle_width=10,
+    border_radius=6,
+    opacity=0.7
+)
+```
+
+---
 
 ## CustomMainWindow Guide
 
@@ -1066,11 +1274,17 @@ if __name__ == '__main__':
 | Component | Purpose | Features |
 |-----------|---------|----------|
 | `CustomMainWindow` | Main application window | Frameless, custom title bar, themeable, draggable |
+| `CustomTitleBar` | Window title bar | Minimize/close buttons, draggable, icon support |
+| `CustomButton` | Reusable button widget | Configurable size, font, position, global color support |
+| `CustomLabel` | Reusable label widget | Configurable text, size, position, bold, global color support |
 | `CustomDropdown` | Standard dropdown | Glassmorphism, smooth animations, custom colors |
 | `CustomDropdownCompact` | Compact dropdown | Smaller height variant |
 | `CustomDropdownLarge` | Large dropdown | Larger height variant |
 | `CustomMessageDialog` | Message dialog | Frameless, draggable, icon support |
-| `CustomTitleBar` | Window title bar | Minimize/close buttons, draggable, icon support |
+| `CustomMenu` | Context/application menu | Glassmorphism, icons, submenus, checkable items, custom colors |
+| `CustomScrollBar` | Custom scrollbar | Glassmorphism, smooth animations, vertical/horizontal |
+| `CustomVerticalScrollBar` | Vertical scrollbar | Convenience class for vertical orientation |
+| `CustomHorizontalScrollBar` | Horizontal scrollbar | Convenience class for horizontal orientation |
 
 ---
 
