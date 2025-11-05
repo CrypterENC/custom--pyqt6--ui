@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
 ### CustomMainWindow
 
-A frameless main window with custom title bar and customizable styling.
+A frameless main window with custom title bar and customizable styling. Automatically applies colors to the title bar to ensure visual consistency.
 
 **Constructor Parameters:**
 ```python
@@ -146,27 +146,45 @@ CustomMainWindow(
     show_close=True,                 # Show close button
     show_title_bar=True,             # Show custom title bar
     bg_color=None,                   # Background color (single or gradient start)
-    bg_color_end=None,               # Gradient end color (if None, uses single color)
+                                     # If None, uses global palette 'background' (#0a0e27)
+    bg_color_end=None,               # Gradient end color
+                                     # If None and bg_color is provided, uses single color
+                                     # If both None, uses global palette 'surface' (#0f1535)
     gradient_angle=135,              # Gradient angle in degrees (0-360)
+    gradient_type='linear',          # 'linear' or 'radial'
+    use_custom_scrollbar=False,      # Enable custom scrollbar styling
+    scrollbar_color=None,            # Scrollbar handle color
+    scrollbar_width=8,               # Scrollbar width in pixels
+    content_margins=(40, 30, 40, 30),# Content area margins (left, top, right, bottom)
+    content_spacing=15,              # Spacing between content widgets
     custom_colors=None               # Custom color overrides
 )
 ```
+
+**Color Behavior:**
+- **When `bg_color=None`**: Uses global palette default `'background'` (#0a0e27)
+- **When `bg_color_end=None`**: Uses single color (no gradient)
+- **Title bar colors**: Automatically inherit from window colors
+  - Background: Uses `bg_color` and `bg_color_end`
+  - Text: Uses global palette `'text'` (#e8f0ff) or custom value
+  - Border: Uses global palette `'border'` colors
 
 **Key Methods:**
 - `add_content(widget)` - Add widget to content area
 - `add_stretch()` - Add stretch to push content to top
 - `set_title(title)` - Update window title
-- `set_theme(theme_name)` - Change theme
+- `set_titlebar_theme(bg_start, bg_end, text_color, border_color, border_bg)` - Customize title bar independently
 - `set_custom_colors(colors_dict)` - Override colors
 - `get_theme_colors()` - Get current colors
 - `set_content_margins(left, top, right, bottom)` - Set margins
 - `set_content_spacing(spacing)` - Set widget spacing
+- `create_custom_label(text, size, position, font_size, bold, color)` - Create positioned label
 
 **Example:**
 ```python
 from custom_ui_package import CustomMainWindow
 
-# Single color background
+# Single color background (uses default title bar colors)
 window = CustomMainWindow(
     title='My App',
     width=700,
@@ -184,6 +202,14 @@ window = CustomMainWindow(
     gradient_angle=90  # Top to bottom
 )
 
+# Use default colors (no parameters)
+window = CustomMainWindow(
+    title='My App',
+    width=700,
+    height=600
+    # bg_color and bg_color_end default to global palette
+)
+
 # Without title bar
 window = CustomMainWindow(
     title='My App',
@@ -191,6 +217,19 @@ window = CustomMainWindow(
     height=600,
     bg_color='#1a0f2e',
     show_title_bar=False
+)
+
+# Customize title bar independently
+window = CustomMainWindow(
+    title='My App',
+    bg_color='#1a0f2e'
+)
+window.set_titlebar_theme(
+    bg_start='#a855f7',
+    bg_end='#1a0f2e',
+    text_color='#7a00ff',
+    border_color='rgba(168, 85, 247, 0.3)',
+    border_bg='rgba(168, 85, 247, 0.1)'
 )
 
 # Get current colors
@@ -1093,18 +1132,24 @@ window = CustomMainWindow(
     icon_path='path/to/icon.png',
     show_minimize=True,
     show_close=True,
-    theme='dark_purple',
-    custom_colors={'button_start': '#ff6b6b'}
+    bg_color='#1a0f2e',
+    bg_color_end='#2d1b4e'
+)
+
+# Customize title bar independently
+window.set_titlebar_theme(
+    bg_start='#a855f7',
+    bg_end='#1a0f2e',
+    text_color='#f3e8ff',
+    border_color='rgba(168, 85, 247, 0.3)',
+    border_bg='rgba(168, 85, 247, 0.1)'
 )
 
 # Customize layout
 window.set_content_margins(50, 40, 50, 40)
 window.set_content_spacing(20)
 
-# Change theme
-window.set_theme('dark_green')
-
-# Update colors
+# Update colors at runtime
 window.set_custom_colors({'button_end': '#ff69b4'})
 ```
 
@@ -1118,7 +1163,7 @@ window.set_custom_colors({'button_end': '#ff69b4'})
 import sys
 from PyQt6.QtWidgets import QApplication, QPushButton, QLabel
 from PyQt6.QtGui import QFont
-from custom_ui_package import CustomMainWindow
+from custom_ui_package import CustomMainWindow, CustomLabel
 
 class SimpleApp(CustomMainWindow):
     def __init__(self):
@@ -1129,10 +1174,16 @@ class SimpleApp(CustomMainWindow):
             bg_color='#1a0f2e'
         )
         
-        title = QLabel('Hello World!')
-        title.setFont(QFont('Segoe UI', 18, QFont.Weight.Bold))
-        title.setStyleSheet(f"color: {self.get_theme_colors()['text_primary']};")
-        self.add_content(title)
+        # Using CustomLabel for consistent styling
+        title = CustomLabel(
+            parent=self.overlay_widget,
+            text='Hello World!',
+            size=(200, 40),
+            position=(150, 50),
+            font_size=18,
+            bold=True,
+            color='#f3e8ff'
+        )
         
         btn = QPushButton('Say Hello')
         btn.clicked.connect(lambda: print('Hello!'))
@@ -1147,13 +1198,13 @@ if __name__ == '__main__':
     sys.exit(app.exec())
 ```
 
-### Example 2: Gradient Background
+### Example 2: Gradient Background with Custom Title Bar
 
 ```python
 import sys
 from PyQt6.QtWidgets import QApplication, QPushButton, QLabel
 from PyQt6.QtGui import QFont
-from custom_ui_package import CustomMainWindow
+from custom_ui_package import CustomMainWindow, CustomLabel
 
 class GradientApp(CustomMainWindow):
     def __init__(self):
@@ -1162,15 +1213,30 @@ class GradientApp(CustomMainWindow):
             width=600,
             height=500,
             bg_color='#1a0f2e',
-            bg_color_end='#2d1b4e'
+            bg_color_end='#2d1b4e',
+            gradient_angle=90  # Top to bottom
         )
         
-        title = QLabel('Beautiful Gradient Background')
-        title.setFont(QFont('Segoe UI', 16, QFont.Weight.Bold))
-        self.add_content(title)
+        # Customize title bar
+        self.set_titlebar_theme(
+            bg_start='#a855f7',
+            bg_end='#1a0f2e',
+            text_color='#f3e8ff'
+        )
+        
+        # Using CustomLabel
+        title = CustomLabel(
+            parent=self.overlay_widget,
+            text='Beautiful Gradient Background',
+            size=(300, 40),
+            position=(150, 50),
+            font_size=16,
+            bold=True,
+            color='#f3e8ff'
+        )
         
         description = QLabel('This window uses a gradient background')
-        description.setStyleSheet(f"color: {self.get_theme_colors()['text_secondary']};")
+        description.setStyleSheet("color: #a5f3fc;")
         self.add_content(description)
         
         btn = QPushButton('Click Me')
@@ -1186,24 +1252,20 @@ if __name__ == '__main__':
     sys.exit(app.exec())
 ```
 
-### Example 3: Complete Application with Custom Colors
+### Example 3: Complete Application with Multiple Components
 
 ```python
 import sys
 from PyQt6.QtWidgets import QApplication, QPushButton, QLabel
 from PyQt6.QtGui import QFont
-from custom_ui_package import CustomMainWindow, CustomDropdown, CustomMessageDialog, set_global_color_palette
+from custom_ui_package import CustomMainWindow, CustomDropdown, CustomMessageDialog, CustomLabel
 
-# Set global color palette
-set_global_color_palette({
-    'primary': '#a855f7',
-    'secondary': '#e9d5ff',
-    'background': '#1a0f2e',
-    'surface': '#2d1b4e',
-    'text': '#f3e8ff',
-    'border': 'rgba(168, 85, 247, 0.3)',
-    'border_hover': 'rgba(168, 85, 247, 0.1)',
-})
+# Define colors directly
+PRIMARY_COLOR = '#a855f7'
+BACKGROUND_COLOR = '#1a0f2e'
+SURFACE_COLOR = '#2d1b4e'
+TEXT_COLOR = '#f3e8ff'
+SECONDARY_TEXT = '#a5f3fc'
 
 class CompleteApp(CustomMainWindow):
     def __init__(self):
@@ -1211,18 +1273,31 @@ class CompleteApp(CustomMainWindow):
             title='Complete App',
             width=600,
             height=700,
-            bg_color='#1a0f2e',
-            bg_color_end='#2d1b4e'
+            bg_color=BACKGROUND_COLOR,
+            bg_color_end=SURFACE_COLOR
         )
         
-        # Title
-        title = QLabel('Select Your Options')
-        title.setFont(QFont('Segoe UI', 20, QFont.Weight.Bold))
-        self.add_content(title)
+        # Customize title bar
+        self.set_titlebar_theme(
+            bg_start=PRIMARY_COLOR,
+            bg_end=BACKGROUND_COLOR,
+            text_color=TEXT_COLOR
+        )
+        
+        # Title using CustomLabel
+        title = CustomLabel(
+            parent=self.overlay_widget,
+            text='Select Your Options',
+            size=(250, 40),
+            position=(175, 20),
+            font_size=20,
+            bold=True,
+            color=TEXT_COLOR
+        )
         
         # Dropdown 1
         label1 = QLabel('Programming Language:')
-        label1.setStyleSheet(f"color: {self.get_theme_colors()['text_secondary']};")
+        label1.setStyleSheet(f"color: {SECONDARY_TEXT};")
         self.add_content(label1)
         
         dropdown1 = CustomDropdown()
@@ -1235,7 +1310,7 @@ class CompleteApp(CustomMainWindow):
         
         # Dropdown 2
         label2 = QLabel('Framework:')
-        label2.setStyleSheet(f"color: {self.get_theme_colors()['text_secondary']};")
+        label2.setStyleSheet(f"color: {SECONDARY_TEXT};")
         self.add_content(label2)
         
         dropdown2 = CustomDropdown()
