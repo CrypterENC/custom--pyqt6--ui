@@ -26,13 +26,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon support for dialogs
 - Professional typography and design
 
+## [1.1.0] - 2025-11-06
+
+### Added
+- **12 New Form & Display Components**:
+  - `CustomTextArea` - Multi-line text input with scrollbars and custom styling
+  - `CustomCheckBox` - Checkbox with custom styling and animations
+  - `CustomRadioButton` - Radio button with custom styling
+  - `CustomSlider` - Range slider with custom track/handle styling
+  - `CustomProgressBar` - Progress indicator with animations
+  - `CustomTabWidget` - Tabbed interface with custom tab styling
+  - `CustomCard` - Card container with shadows and theming
+  - `CustomBadge` - Status badges/chips/tags
+  - `CustomSpinner` - Loading indicator with animations
+  - `CustomToast` - Notification/toast messages
+  - `CustomTooltip` - Hover tooltips with custom styling
+  - `CustomAccordion` - Collapsible panels/sections
+
+### Features
+- Full color customization (hex, rgba, rgb) for all components
+- Multiple animation types: smooth, bounce, elastic, none
+- Comprehensive signal/event system
+- Hover and focus state handling
+- Drop shadow effects (where applicable)
+- Smooth state transitions
+- Type hints and full docstrings on all components
+
+### Changed
+- Updated `__init__.py` to export all 12 new components
+- Enhanced package structure for better organization
+- Improved component consistency across the library
+
+### Documentation
+- Added comprehensive component reference for all new components
+- Added method signatures and parameter documentation
+- Added signal/event documentation
+- Added usage examples for each component
+
 ## [Unreleased]
 
 ### Planned
 - Dark/Light theme support
-- Animation customization options
-- Additional widget variants
-- Theme presets
+- Additional data display components (Table, List, Tree)
+- Date/Time picker components
+- Color picker component
+- Search bar with suggestions
+- Context menu component
+- File dialog component
+- Multi-step wizard component
 - Accessibility improvements
 
 ---

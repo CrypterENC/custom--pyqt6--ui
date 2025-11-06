@@ -1,12 +1,11 @@
 """
-Custom Main Window - A reusable frameless main window with custom title bar
-Provides a base class for creating modern, draggable windows with customizable styling
+Custom Main Window - A reusable frameless main window
+Provides a base class for creating modern windows with customizable styling
 """
 
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from .custom_titlebar import CustomTitleBar
 from .colors.color_palette import GLOBAL_COLOR_PALETTE, create_background_style, get_global_color, set_global_color_palette
 
 
@@ -17,37 +16,23 @@ THEMES = {}
 
 class CustomMainWindow(QMainWindow):
     """
-    A frameless main window with a custom title bar and customizable styling.
+    A frameless main window with customizable styling.
     
     Features:
     - Frameless window design
-    - Custom draggable title bar
-    - Modern gradient background
+    - Solid color background
     - Smooth button transitions
     - Customizable color themes
     - Easy to extend for custom applications
+    - No default title bar (add CustomTitleBar manually if needed)
     
     Args:
         title (str): Window title (default: 'Custom Window')
         width (int): Window width in pixels (default: 600)
         height (int): Window height in pixels (default: 750)
-        icon_path (str, optional): Path to window icon
-        show_minimize (bool): Show minimize button in title bar (default: True)
-        show_close (bool): Show close button in title bar (default: True)
-        show_title_bar (bool): Show custom title bar (default: True)
         theme (str): Theme name from THEMES dict (default: None)
         custom_colors (dict, optional): Custom color dictionary to override theme
-        bg_color (str, optional): Background color (single color or gradient start). Hex or rgba format
-        bg_color_end (str, optional): Background gradient end color. If None, uses single color
-        gradient_angle (int): Gradient angle in degrees (default: 135)
-            - 0° = left to right
-            - 45° = diagonal (top-left to bottom-right)
-            - 90° = top to bottom
-            - 135° = diagonal (bottom-left to top-right)
-            - 180° = right to left
-        gradient_type (str): Type of gradient - 'linear' or 'radial' (default: 'linear')
-            - 'linear': Directional gradient following gradient_angle
-            - 'radial': Circular gradient from center outward
+        bg_color (str, optional): Background color (solid color only). Hex or rgba format
         use_custom_scrollbar (bool): Enable custom scrollbar styling (default: False)
         scrollbar_color (str, optional): Scrollbar handle color. Default: global primary color
         scrollbar_width (int): Scrollbar width in pixels (default: 8)
@@ -58,15 +43,6 @@ class CustomMainWindow(QMainWindow):
         # Single color background
         window = CustomMainWindow(title='App', bg_color='#a855f7')
         
-        # Linear gradient background
-        window = CustomMainWindow(title='App', bg_color='#a855f7', bg_color_end='#1a0f2e')
-        
-        # Vertical gradient (top to bottom)
-        window = CustomMainWindow(title='App', bg_color='#a855f7', bg_color_end='#1a0f2e', gradient_angle=90)
-        
-        # Radial gradient (circular from center)
-        window = CustomMainWindow(title='App', bg_color='#a855f7', bg_color_end='#1a0f2e', gradient_type='radial')
-        
         # With custom scrollbar
         window = CustomMainWindow(
             title='App',
@@ -75,17 +51,22 @@ class CustomMainWindow(QMainWindow):
             scrollbar_color='#ec4899',
             scrollbar_width=10
         )
+        
+        # Add custom title bar manually
+        from custom_ui_package import CustomTitleBar
+        title_bar = CustomTitleBar(parent=window, title='My App', bg_color='#7a00ff')
+        layout = window.centralWidget().layout()
+        layout.insertWidget(0, title_bar)
     """
     
     def __init__(self, title='Custom Window', width=600, height=750, 
-                 icon_path=None, show_minimize=True, show_close=True,
-                 show_title_bar=True, theme=None, custom_colors=None, 
-                 bg_color=None, bg_color_end=None, gradient_angle=135, gradient_type='linear',
-                 use_custom_scrollbar=False, scrollbar_color=None, scrollbar_width=8,
+                 theme=None, custom_colors=None, 
+                 bg_color=None, use_custom_scrollbar=False, scrollbar_color=None, scrollbar_width=8,
                  content_margins=(40, 30, 40, 30), content_spacing=15):
         super().__init__()
         self.setGeometry(100, 100, width, height)
         self.setWindowTitle(title)
+        self.title_bar = None  # No default title bar
         
         # Apply frameless window style - removes default title bar
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
@@ -94,35 +75,21 @@ class CustomMainWindow(QMainWindow):
         self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
         
-        # Store gradient properties for smooth gradient transitions
-        self.gradient_angle = gradient_angle
-        self.gradient_type = gradient_type
-        
         # Initialize colors from global palette
         self.colors = {
-            'bg_gradient_start': GLOBAL_COLOR_PALETTE.get('background', '#0a0e27'),
-            'bg_gradient_end': GLOBAL_COLOR_PALETTE.get('surface', '#0f1535'),
-            'button_start': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
-            'button_end': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
-            'button_hover_start': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
-            'button_hover_end': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
-            'button_pressed_start': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
-            'button_pressed_end': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
+            'bg_color': GLOBAL_COLOR_PALETTE.get('background', '#0a0e27'),
+            'button_color': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
+            'button_hover_color': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
+            'button_pressed_color': GLOBAL_COLOR_PALETTE.get('primary', '#6366f1'),
             'text_primary': GLOBAL_COLOR_PALETTE.get('text', '#e8f0ff'),
             'text_secondary': GLOBAL_COLOR_PALETTE.get('secondary', '#a5f3fc'),
             'border_color': GLOBAL_COLOR_PALETTE.get('border', 'rgba(99, 102, 241, 0.3)'),
             'border_bg': GLOBAL_COLOR_PALETTE.get('border_hover', 'rgba(99, 102, 241, 0.1)'),
         }
         
-        # Override with background color parameters if provided
+        # Override with background color parameter if provided
         if bg_color:
-            # Single color or gradient start
-            self.colors['bg_gradient_start'] = bg_color
-            # If no end color provided, use same color (solid)
-            if bg_color_end is None:
-                self.colors['bg_gradient_end'] = bg_color
-            else:
-                self.colors['bg_gradient_end'] = bg_color_end
+            self.colors['bg_color'] = bg_color
         
         # Override with custom colors if provided
         if custom_colors:
@@ -138,19 +105,6 @@ class CustomMainWindow(QMainWindow):
         layout = QVBoxLayout(central_widget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        
-        # Add custom title bar (optional, colors can be set independently via set_titlebar_theme)
-        if show_title_bar:
-            self.title_bar = CustomTitleBar(
-                parent=self,
-                title=title,
-                icon_path=icon_path,
-                show_minimize=show_minimize,
-                show_close=show_close
-            )
-            layout.addWidget(self.title_bar)
-        else:
-            self.title_bar = None
         
         # Create content area widget (to be populated by subclasses)
         self.content_widget = QWidget()
@@ -209,29 +163,17 @@ class CustomMainWindow(QMainWindow):
     
     def _apply_stylesheet(self):
         """Apply stylesheet with current theme colors"""
-        # Build gradient based on type
-        if self.gradient_type == 'radial':
-            # Radial gradient (center to edges)
-            gradient_style = f"background: qradialgradient(cx:0.5, cy:0.5, radius:0.7, stop:0 {self.colors['bg_gradient_start']}, stop:1 {self.colors['bg_gradient_end']});"
-        else:
-            # Linear gradient with angle support
-            import math
-            angle_rad = math.radians(self.gradient_angle)
-            x2 = round(math.cos(angle_rad), 2)
-            y2 = round(math.sin(angle_rad), 2)
-            gradient_style = f"background: qlineargradient(x1:0, y1:0, x2:{x2}, y2:{y2}, stop:0 {self.colors['bg_gradient_start']}, stop:1 {self.colors['bg_gradient_end']});"
-        
-        # Apply gradient to central widget instead of QMainWindow
+        # Build stylesheet with solid colors
         stylesheet = f"""
             * {{
                 margin: 0px;
                 padding: 0px;
             }}
             QWidget {{ 
-                {gradient_style}
+                background: {self.colors['bg_color']};
             }}
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {self.colors['button_start']}, stop:1 {self.colors['button_end']});
+                background: {self.colors['button_color']};
                 border: none;
                 border-radius: 12px;
                 padding: 15px 20px;
@@ -241,10 +183,10 @@ class CustomMainWindow(QMainWindow):
                 outline: none;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {self.colors['button_hover_start']}, stop:1 {self.colors['button_hover_end']});
+                background: {self.colors['button_hover_color']};
             }}
             QPushButton:pressed {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {self.colors['button_pressed_start']}, stop:1 {self.colors['button_pressed_end']});
+                background: {self.colors['button_pressed_color']};
             }}
             QPushButton:focus {{
                 outline: none;
@@ -255,83 +197,7 @@ class CustomMainWindow(QMainWindow):
         # Also apply to central widget
         if hasattr(self, 'centralWidget') and self.centralWidget():
             self.centralWidget().setStyleSheet(stylesheet)
-        # Apply title bar theme
-        self._update_titlebar_theme()
     
-    def _update_titlebar_theme(self):
-        """Update title bar colors to match current theme"""
-        if hasattr(self, 'title_bar'):
-            self._apply_titlebar_colors(
-                bg_start=self.colors.get('bg_gradient_start', '#0a0e27'),
-                bg_end=self.colors.get('bg_gradient_end', '#0f1535'),
-                text_color=self.colors.get('text_primary', '#e8f0ff'),
-                border_color=self.colors.get('border_color', 'rgba(99, 102, 241, 0.2)'),
-                border_bg=self.colors.get('border_bg', 'rgba(99, 102, 241, 0.1)')
-            )
-    
-    def set_titlebar_theme(self, bg_start, bg_end, text_color='#e8f0ff', border_color='rgba(99, 102, 241, 0.2)', border_bg='rgba(99, 102, 241, 0.1)'):
-        """
-        Set custom colors for the title bar independently.
-        
-        Args:
-            bg_start (str): Title bar gradient start color (hex)
-            bg_end (str): Title bar gradient end color (hex)
-            text_color (str): Title bar text color (hex)
-            border_color (str): Title bar border color (hex or rgba)
-            border_bg (str): Title bar button hover background color (hex or rgba)
-        """
-        self._apply_titlebar_colors(bg_start, bg_end, text_color, border_color, border_bg)
-    
-    def _apply_titlebar_colors(self, bg_start, bg_end, text_color, border_color, border_bg):
-        """Apply title bar colors"""
-        if hasattr(self, 'title_bar'):
-            self.title_bar.setStyleSheet(f"""
-                * {{
-                    margin: 0px;
-                    padding: 0px;
-                }}
-                #titleBar {{
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                        stop:0 {bg_start},
-                        stop:1 {bg_end});
-                    margin: 0px;
-                    padding: 0px;
-                }}
-                QLabel#titleLabel {{
-                    color: {text_color};
-                    background: transparent;
-                    margin: 0px;
-                    padding: 0px;
-                }}
-                QPushButton#minimizeBtn {{
-                    background: transparent;
-                    border: none;
-                    color: {text_color};
-                    font-size: 18px;
-                    font-weight: bold;
-                    padding: 0px;
-                    margin: 0px;
-                    outline: none;
-                }}
-                QPushButton#minimizeBtn:hover {{
-                    background: {border_bg};
-                    border-radius: 6px;
-                }}
-                QPushButton#closeBtn {{
-                    background: transparent;
-                    border: none;
-                    color: {text_color};
-                    font-size: 16px;
-                    font-weight: bold;
-                    padding: 0px;
-                    margin: 0px;
-                    outline: none;
-                }}
-                QPushButton#closeBtn:hover {{
-                    background: rgba(239, 68, 68, 0.3);
-                    border-radius: 6px;
-                }}
-            """)
     
     
     def create_custom_label(self, text, size=(100, 30), position=(0, 0), font_size=10, bold=False, color=None):

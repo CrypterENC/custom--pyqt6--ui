@@ -43,8 +43,14 @@ class CustomLabel(QLabel):
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         
+        # Disable text selection highlighting
+        self.setAutoFillBackground(False)
+        
         # Apply styling
         self._apply_style()
+        
+        # Show the label
+        self.show()
     
     def _apply_style(self):
         """Apply styling to label"""
@@ -54,6 +60,8 @@ class CustomLabel(QLabel):
                 background: transparent;
                 margin: 0px;
                 padding: 0px;
+                selection-background-color: transparent;
+                selection-color: {self.color};
             }}
         """)
     
