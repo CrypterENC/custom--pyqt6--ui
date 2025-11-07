@@ -28,6 +28,7 @@ from .custom_spinner import CustomSpinner
 from .custom_toast import CustomToast
 from .custom_tooltip import CustomTooltip
 from .custom_accordion import CustomAccordion, AccordionItem
+from .custom_modal import CustomModal
 from .colors.color_palette import (
     GLOBAL_COLOR_PALETTE,
     create_background_style,
@@ -35,7 +36,7 @@ from .colors.color_palette import (
     set_global_color_palette
 )
 
-__version__ = "1.0.4"
+__version__ = "1.0.7"
 __author__ = "CrypterENC"
 __email__ = "a95899003@gmail.com"
 __description__ = "Modern PyQt6 UI components with glassmorphism effects and smooth animations"
@@ -68,6 +69,7 @@ __all__ = [
     "CustomTooltip",
     "CustomAccordion",
     "AccordionItem",
+    "CustomModal",
     "THEMES",
     "GLOBAL_COLOR_PALETTE",
     "create_background_style",

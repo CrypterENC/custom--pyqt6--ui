@@ -2,7 +2,7 @@ import sys
 import os
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QFile
 from PyQt6.QtGui import QFont, QIcon, QColor, QPixmap
 from .colors.color_palette import get_global_color
 

@@ -5,13 +5,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="custom-ui-pyqt6",
-    version="1.0.4",
+    version="1.0.8",
     author="CrypterENC",
     author_email="a95899003@gmail.com",
-    description="Modern PyQt6 UI components with glassmorphism effects, smooth animations, and 21 customizable widgets",
+    description="Modern PyQt6 UI components with glassmorphism effects, smooth animations, and 22 customizable widgets",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/custom-ui-pyqt6",
+    url="https://github.com/CrypterENC/custom-ui-pyqt6",
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
@@ -23,7 +23,7 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Operating System :: OS Independent",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Topic :: Software Development :: Libraries :: Python Modules",
@@ -46,9 +46,8 @@ setup(
         "desktop-application", "cross-platform"
     ],
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/custom-ui-pyqt6/issues",
-        "Source": "https://github.com/yourusername/custom-ui-pyqt6",
-        "Documentation": "https://github.com/yourusername/custom-ui-pyqt6#readme",
-        "Examples": "https://github.com/yourusername/custom-ui-pyqt6/tree/main/examples",
+        "Bug Reports": "https://github.com/CrypterENC/custom--pyqt6--ui/issues",
+        "Documentation": "https://github.com/CrypterENC/custom--pyqt6--ui#readme",
+        "Examples": "https://github.com/CrypterENC/custom--pyqt6--ui/blob/main/DOCUMENTATION.md#examples",
     },
 )

@@ -18,6 +18,24 @@ from typing import Optional
 class CustomToast(QWidget):
     """
     Toast notification widget with custom styling and animations.
+    
+    Features:
+    - Multiple toast types with auto-colors (info, success, warning, error)
+    - Auto-dismiss with configurable duration
+    - Smooth fade-in animations
+    - Screen-level or parent-relative positioning
+    - Customizable colors, fonts, and styling
+    - Runtime updates
+    
+    Example:
+        toast = CustomToast(
+            parent=None,
+            message="Operation successful!",
+            toast_type="success",
+            duration=3000,
+            position="bottom-right"
+        )
+        toast.show_toast()
     """
     
     def __init__(
@@ -40,17 +58,18 @@ class CustomToast(QWidget):
         Initialize CustomToast.
         
         Args:
-            parent: Parent widget
-            message: Toast message
+            parent: Parent widget (None for screen-level toast)
+            message: Toast message text
             toast_type: Type - 'info', 'success', 'warning', 'error'
-            duration: Display duration in milliseconds
+                - Auto-colors: info (blue), success (green), warning (orange), error (red)
+            duration: Display duration in milliseconds (0 = no auto-dismiss)
             position: Position - 'top-left', 'top-right', 'bottom-left', 'bottom-right'
             width: Toast width in pixels
             border_radius: Border radius in pixels
             animation_name: Animation type - 'smooth', 'bounce', 'elastic', 'none'
-            bg_color: Background color (hex or rgba)
+            bg_color: Background color (hex or rgba). Auto-set by toast_type if None
             text_color: Text color (hex or rgba)
-            border_color: Border color (hex or rgba)
+            border_color: Border color (hex or rgba). Auto-set by toast_type if None
             font_family: Font family name
             font_size: Font size in pixels
         """
@@ -126,10 +145,17 @@ class CustomToast(QWidget):
         self.setStyleSheet(stylesheet)
     
     def show_toast(self):
-        """Show the toast notification."""
+        """
+        Show the toast notification.
+        
+        Displays the toast at the specified position with optional animation
+        and auto-dismiss based on duration setting.
+        """
         self.is_showing = True
         self._position_toast()
         self.show()
+        self.raise_()
+        self.activateWindow()
         
         if self.animation_name != "none":
             self._start_animation()
@@ -211,7 +237,14 @@ class CustomToast(QWidget):
         text_color: Optional[str] = None,
         border_color: Optional[str] = None,
     ):
-        """Update colors at runtime."""
+        """
+        Update colors at runtime.
+        
+        Args:
+            bg_color: Background color (hex or rgba)
+            text_color: Text color (hex or rgba)
+            border_color: Border color (hex or rgba)
+        """
         if bg_color:
             self.bg_color = bg_color
         if text_color:
@@ -223,11 +256,39 @@ class CustomToast(QWidget):
         self._apply_stylesheet()
     
     def set_duration(self, duration: int):
-        """Set display duration."""
+        """
+        Set display duration.
+        
+        Args:
+            duration: Duration in milliseconds (0 = no auto-dismiss)
+        """
         self.duration = duration
     
     def set_position(self, position: str):
-        """Set toast position."""
+        """
+        Set toast position.
+        
+        Args:
+            position: Position - 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+        """
         self.position = position
         if self.is_showing:
             self._position_toast()
+    
+    def get_message(self) -> str:
+        """
+        Get current toast message.
+        
+        Returns:
+            Current message text
+        """
+        return self.message_label.text()
+    
+    def get_toast_type(self) -> str:
+        """
+        Get toast type.
+        
+        Returns:
+            Toast type (info, success, warning, error)
+        """
+        return self.toast_type

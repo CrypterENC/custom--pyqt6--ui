@@ -20,6 +20,7 @@ Modern, reusable PyQt6 UI components with glassmorphism effects and smooth anima
      - [CustomButton](#custombutton)
      - [CustomLabel](#customlabel)
      - [CustomInputBox](#custominputbox)
+     - [CustomModal](#custommodal)
      - [CustomDropdown](#customdropdown)
      - [CustomMessageDialog](#custommessagedialog)
      - [CustomMenu](#custommenu)
@@ -40,25 +41,16 @@ Modern, reusable PyQt6 UI components with glassmorphism effects and smooth anima
      - [CustomTooltip](#customtooltip)
    - **New Layout Components**
      - [CustomAccordion](#customaccordion)
-5. [CustomMainWindow Guide](#custommainwindow-guide)
-6. [Theming System](#theming-system)
-7. [Color Palette](#color-palette)
-8. [Global Color Management](#global-color-management)
-9. [Customization](#customization)
-   - [CustomMainWindow Customization](#custommainwindow-customization)
-   - [CustomTitleBar Customization](#customtitlebar-customization)
-   - [CustomDropdown Customization](#customdropdown-customization)
-   - [CustomMessageDialog Customization](#custommessagedialog-customization)
-10. [Examples](#examples)
-11. [Components Overview](#components-overview)
-12. [Requirements](#requirements)
-13. [Tips & Best Practices](#tips--best-practices)
-14. [GUI Coding Guide - Parent Options & Positioning](#gui-coding-guide---parent-options--positioning)
-    - [Understanding CustomMainWindow Structure](#understanding-custommainwindow-structure)
-    - [Parent Options Explained](#parent-options-explained)
-    - [Complete Positioning Reference](#complete-positioning-reference)
-    - [Real-World Example: Token Setup Dialog](#real-world-example-token-setup-dialog)
-    - [Best Practices Summary](#best-practices-summary)
+5. [Theming System](#theming-system)
+6. [Color Palette](#color-palette)
+7. [Global Color Management](#global-color-management)
+8. [Customization](#customization)
+9. [Examples](#examples)
+10. [Components Overview](#components-overview)
+11. [Requirements](#requirements)
+12. [Tips & Best Practices](#tips--best-practices)
+13. [GUI Coding Guide - Parent Options & Positioning](#gui-coding-guide---parent-options--positioning)
+14. [Support](#support)
 15. [Contributing](#contributing)
 16. [License](#license)
 
@@ -149,11 +141,621 @@ if __name__ == '__main__':
 
 ---
 
+## PyQt6 Integration Guide
+
+This guide covers how to effectively use PyQt6 features alongside the custom UI library. Learn how to integrate signals/slots, layouts, events, and standard PyQt6 widgets with custom components.
+
+### Signals and Slots with Custom Components
+
+**Connecting Custom Component Signals:**
+```python
+from PyQt6.QtWidgets import QApplication, QVBoxLayout, QWidget
+from PyQt6.QtCore import pyqtSlot
+from custom_ui_package import CustomMainWindow, CustomButton, CustomInputBox
+
+class MyApp(CustomMainWindow):
+    def __init__(self):
+        super().__init__(title='Signal/Slot Example', width=500, height=400)
+        
+        # Create custom components
+        self.input_box = CustomInputBox(
+            parent=self.content_widget,
+            placeholder="Type something...",
+            size=(300, 40)
+        )
+        self.add_content(self.input_box)
+        
+        self.button = CustomButton(
+            parent=self.content_widget,
+            title="Submit",
+            size=(150, 40)
+        )
+        self.add_content(self.button)
+        
+        # Connect custom signals to PyQt6 slots
+        self.input_box.text_changed_custom.connect(self.on_text_changed)
+        self.button.clicked.connect(self.on_submit)
+        
+        # Connect standard PyQt6 signals
+        self.input_box.returnPressed.connect(self.on_enter_pressed)
+    
+    @pyqtSlot(str)
+    def on_text_changed(self, text):
+        """Handle custom signal from CustomInputBox"""
+        print(f"Text changed to: {text}")
+        # Enable/disable button based on input
+        self.button.setEnabled(len(text.strip()) > 0)
+    
+    @pyqtSlot()
+    def on_submit(self):
+        """Handle button click"""
+        text = self.input_box.get_text()
+        print(f"Submitted: {text}")
+        # Show success message using CustomMessageDialog
+        from custom_ui_package import CustomMessageDialog
+        dialog = CustomMessageDialog(
+            'Success',
+            f'Submitted: {text}',
+            'info',
+            self
+        )
+        dialog.exec()
+    
+    @pyqtSlot()
+    def on_enter_pressed(self):
+        """Handle Enter key press in input box"""
+        if self.button.isEnabled():
+            self.on_submit()
+```
+
+### Layout Management with PyQt6
+
+**Using PyQt6 Layouts with Custom Components:**
+```python
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout, QGroupBox, QLabel
+from PyQt6.QtCore import Qt
+from custom_ui_package import CustomMainWindow, CustomButton, CustomInputBox
+
+class LayoutExample(CustomMainWindow):
+    def __init__(self):
+        super().__init__(title='Layout Example', width=600, height=500)
+        
+        # Create a custom layout container
+        main_layout = QVBoxLayout()
+        
+        # Group box with custom components
+        group = QGroupBox("User Information")
+        group_layout = QGridLayout()
+        
+        # Standard QLabel + CustomInputBox
+        name_label = QLabel("Name:")
+        self.name_input = CustomInputBox(
+            parent=None,
+            placeholder="Enter your name",
+            size=(200, 35)
+        )
+        
+        email_label = QLabel("Email:")
+        self.email_input = CustomInputBox(
+            parent=None,
+            placeholder="Enter your email",
+            size=(200, 35)
+        )
+        
+        # Add to grid layout
+        group_layout.addWidget(name_label, 0, 0)
+        group_layout.addWidget(self.name_input, 0, 1)
+        group_layout.addWidget(email_label, 1, 0)
+        group_layout.addWidget(self.email_input, 1, 1)
+        
+        group.setLayout(group_layout)
+        main_layout.addWidget(group)
+        
+        # Button row with horizontal layout
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()  # Push buttons to right
+        
+        self.cancel_btn = CustomButton(
+            parent=None,
+            title="Cancel",
+            size=(100, 35)
+        )
+        self.cancel_btn.clicked.connect(self.close)
+        
+        self.save_btn = CustomButton(
+            parent=None,
+            title="Save",
+            size=(100, 35),
+            bg_color="#10b981"
+        )
+        self.save_btn.clicked.connect(self.save_data)
+        
+        button_layout.addWidget(self.cancel_btn)
+        button_layout.addWidget(self.save_btn)
+        
+        main_layout.addLayout(button_layout)
+        main_layout.addStretch()
+        
+        # Create container widget and set layout
+        container = QWidget()
+        container.setLayout(main_layout)
+        self.add_content(container)
+    
+    def save_data(self):
+        name = self.name_input.get_text()
+        email = self.email_input.get_text()
+        print(f"Saving: Name={name}, Email={email}")
+```
+
+### Event Handling and PyQt6 Features
+
+**Keyboard and Mouse Events:**
+```python
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QKeySequence, QShortcut
+from custom_ui_package import CustomMainWindow, CustomInputBox
+
+class EventHandlingExample(CustomMainWindow):
+    def __init__(self):
+        super().__init__(title='Event Handling', width=500, height=400)
+        
+        # Custom input with PyQt6 event handling
+        self.search_input = CustomInputBox(
+            parent=self.content_widget,
+            placeholder="Search (Ctrl+F to focus)...",
+            size=(400, 40)
+        )
+        self.add_content(self.search_input)
+        
+        # Keyboard shortcuts
+        search_shortcut = QShortcut(QKeySequence("Ctrl+F"), self)
+        search_shortcut.activated.connect(self.focus_search)
+        
+        # Timer for debounced search
+        self.search_timer = QTimer()
+        self.search_timer.setSingleShot(True)
+        self.search_timer.timeout.connect(self.perform_search)
+        
+        # Connect to custom signal for debounced search
+        self.search_input.text_changed_custom.connect(self.on_search_text_changed)
+        
+        # Install event filter for advanced event handling
+        self.installEventFilter(self)
+    
+    def focus_search(self):
+        """Focus search input via shortcut"""
+        self.search_input.setFocus()
+        self.search_input.selectAll()
+    
+    def on_search_text_changed(self, text):
+        """Debounced search implementation"""
+        self.search_timer.start(300)  # 300ms delay
+    
+    def perform_search(self):
+        """Execute search after debounce delay"""
+        query = self.search_input.get_text()
+        print(f"Searching for: {query}")
+    
+    def eventFilter(self, obj, event):
+        """Global event filter for custom behavior"""
+        if event.type() == event.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Escape:
+                # Clear search on Escape
+                self.search_input.clear_text()
+                return True
+            elif event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+                if event.key() == Qt.Key.Key_Q:
+                    # Ctrl+Q to quit
+                    self.close()
+                    return True
+        
+        return super().eventFilter(obj, event)
+```
+
+### Integrating Standard PyQt6 Widgets
+
+**Mixing Standard and Custom Components:**
+```python
+from PyQt6.QtWidgets import (
+    QComboBox, QCheckBox, QRadioButton, QSlider, 
+    QProgressBar, QTextEdit, QTableWidget, QTabWidget,
+    QSplitter, QScrollArea, QGroupBox, QFrame
+)
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from custom_ui_package import CustomMainWindow, CustomButton, CustomLabel
+
+class MixedComponentsExample(CustomMainWindow):
+    def __init__(self):
+        super().__init__(title='Mixed Components', width=700, height=600)
+        
+        # Create main container with splitter
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        
+        # Left panel - Standard PyQt6 widgets
+        left_panel = self.create_left_panel()
+        splitter.addWidget(left_panel)
+        
+        # Right panel - Custom components
+        right_panel = self.create_right_panel()
+        splitter.addWidget(right_panel)
+        
+        # Set splitter proportions
+        splitter.setSizes([300, 400])
+        
+        self.add_content(splitter)
+    
+    def create_left_panel(self):
+        """Panel with standard PyQt6 widgets"""
+        panel = QGroupBox("Standard PyQt6 Widgets")
+        layout = QVBoxLayout()
+        
+        # Standard QComboBox
+        self.combo = QComboBox()
+        self.combo.addItems(["Option 1", "Option 2", "Option 3"])
+        self.combo.currentTextChanged.connect(self.on_combo_changed)
+        layout.addWidget(self.combo)
+        
+        # Standard QCheckBox
+        self.checkbox = QCheckBox("Enable feature")
+        self.checkbox.stateChanged.connect(self.on_checkbox_changed)
+        layout.addWidget(self.checkbox)
+        
+        # Standard QSlider
+        self.slider = QSlider(Qt.Orientation.Horizontal)
+        self.slider.setRange(0, 100)
+        self.slider.valueChanged.connect(self.on_slider_changed)
+        layout.addWidget(self.slider)
+        
+        # Standard QProgressBar
+        self.progress = QProgressBar()
+        self.progress.setValue(50)
+        layout.addWidget(self.progress)
+        
+        panel.setLayout(layout)
+        return panel
+    
+    def create_right_panel(self):
+        """Panel with custom components"""
+        panel = QGroupBox("Custom Components")
+        layout = QVBoxLayout()
+        
+        # Custom label
+        self.status_label = CustomLabel(
+            parent=None,
+            text="Status: Ready",
+            size=(200, 30),
+            font_size=12,
+            color="#10b981"
+        )
+        layout.addWidget(self.status_label)
+        
+        # Custom button
+        self.action_button = CustomButton(
+            parent=None,
+            title="Perform Action",
+            size=(150, 35),
+            bg_color="#3b82f6"
+        )
+        self.action_button.clicked.connect(self.perform_action)
+        layout.addWidget(self.action_button)
+        
+        layout.addStretch()
+        panel.setLayout(layout)
+        return panel
+    
+    def on_combo_changed(self, text):
+        """Handle standard QComboBox change"""
+        print(f"Selected: {text}")
+        self.status_label.set_text(f"Selected: {text}")
+    
+    def on_checkbox_changed(self, state):
+        """Handle standard QCheckBox change"""
+        enabled = state == Qt.CheckState.Checked
+        self.action_button.setEnabled(enabled)
+        print(f"Feature enabled: {enabled}")
+    
+    def on_slider_changed(self, value):
+        """Handle standard QSlider change"""
+        self.progress.setValue(value)
+        print(f"Slider value: {value}")
+    
+    def perform_action(self):
+        """Handle custom button click"""
+        print("Action performed!")
+        # Update standard widget from custom component
+        self.progress.setValue(100)
+```
+
+### Threading and Background Tasks
+
+**Using QThread with Custom Components:**
+```python
+from PyQt6.QtCore import QThread, pyqtSignal, QTimer
+from PyQt6.QtWidgets import QApplication
+from custom_ui_package import CustomMainWindow, CustomButton, CustomLabel, CustomProgressBar
+
+class WorkerThread(QThread):
+    """Background worker thread"""
+    progress_updated = pyqtSignal(int)
+    task_completed = pyqtSignal(str)
+    error_occurred = pyqtSignal(str)
+    
+    def __init__(self, task_duration=5000):
+        super().__init__()
+        self.task_duration = task_duration
+    
+    def run(self):
+        """Execute background task"""
+        try:
+            steps = 100
+            for i in range(steps + 1):
+                # Simulate work
+                self.msleep(self.task_duration // steps)
+                self.progress_updated.emit(i)
+            
+            self.task_completed.emit("Task completed successfully!")
+            
+        except Exception as e:
+            self.error_occurred.emit(str(e))
+
+class ThreadingExample(CustomMainWindow):
+    def __init__(self):
+        super().__init__(title='Threading Example', width=500, height=400)
+        
+        # UI Components
+        self.status_label = CustomLabel(
+            parent=self.content_widget,
+            text="Ready to start task",
+            size=(300, 30),
+            font_size=12
+        )
+        self.add_content(self.status_label)
+        
+        self.progress_bar = CustomProgressBar(
+            parent=self.content_widget,
+            size=(400, 25)
+        )
+        self.add_content(self.progress_bar)
+        
+        self.start_button = CustomButton(
+            parent=self.content_widget,
+            title="Start Task",
+            size=(150, 35),
+            bg_color="#10b981"
+        )
+        self.start_button.clicked.connect(self.start_task)
+        self.add_content(self.start_button)
+        
+        # Thread management
+        self.worker = None
+    
+    def start_task(self):
+        """Start background task"""
+        if self.worker and self.worker.isRunning():
+            return
+        
+        self.start_button.setEnabled(False)
+        self.status_label.set_text("Task running...")
+        
+        # Create and start worker thread
+        self.worker = WorkerThread(task_duration=3000)
+        self.worker.progress_updated.connect(self.update_progress)
+        self.worker.task_completed.connect(self.on_task_completed)
+        self.worker.error_occurred.connect(self.on_task_error)
+        self.worker.start()
+    
+    def update_progress(self, value):
+        """Update progress bar from worker thread"""
+        self.progress_bar.set_value(value)
+    
+    def on_task_completed(self, message):
+        """Handle task completion"""
+        self.status_label.set_text(message)
+        self.start_button.setEnabled(True)
+        self.progress_bar.set_value(0)
+    
+    def on_task_error(self, error_msg):
+        """Handle task error"""
+        self.status_label.set_text(f"Error: {error_msg}")
+        self.start_button.setEnabled(True)
+        self.progress_bar.set_value(0)
+    
+    def closeEvent(self, event):
+        """Clean up threads on close"""
+        if self.worker and self.worker.isRunning():
+            self.worker.terminate()
+            self.worker.wait()
+        event.accept()
+```
+
+### Advanced PyQt6 Features
+
+**Custom Event Handling:**
+```python
+from PyQt6.QtCore import QEvent, QObject, pyqtSignal
+from PyQt6.QtGui import QMouseEvent, QKeyEvent
+from custom_ui_package import CustomMainWindow, CustomButton
+
+class CustomEventHandler(QObject):
+    """Custom event handler for advanced interactions"""
+    
+    mouse_pressed = pyqtSignal(object)  # QMouseEvent
+    key_pressed = pyqtSignal(object)    # QKeyEvent
+    double_clicked = pyqtSignal()
+    
+    def eventFilter(self, obj, event):
+        """Filter events for custom behavior"""
+        if event.type() == QEvent.Type.MouseButtonPress:
+            if isinstance(event, QMouseEvent):
+                self.mouse_pressed.emit(event)
+                # Custom behavior: Right-click shows context menu
+                if event.button() == event.button().RightButton:
+                    self.show_context_menu(event.pos())
+        
+        elif event.type() == QEvent.Type.KeyPress:
+            if isinstance(event, QKeyEvent):
+                self.key_pressed.emit(event)
+                # Custom shortcuts
+                if event.key() == event.key().F5:
+                    self.refresh_data()
+        
+        elif event.type() == QEvent.Type.MouseButtonDblClick:
+            self.double_clicked.emit()
+        
+        return super().eventFilter(obj, event)
+    
+    def show_context_menu(self, pos):
+        """Show custom context menu"""
+        print(f"Context menu at {pos}")
+    
+    def refresh_data(self):
+        """Handle F5 refresh"""
+        print("Refreshing data...")
+
+class AdvancedEventsExample(CustomMainWindow):
+    def __init__(self):
+        super().__init__(title='Advanced Events', width=500, height=400)
+        
+        # Custom button with advanced event handling
+        self.button = CustomButton(
+            parent=self.content_widget,
+            title="Click me (try right-click, double-click, F5)",
+            size=(300, 40)
+        )
+        self.add_content(self.button)
+        
+        # Install custom event handler
+        self.event_handler = CustomEventHandler()
+        self.installEventFilter(self.event_handler)
+        
+        # Connect custom signals
+        self.event_handler.mouse_pressed.connect(self.on_mouse_press)
+        self.event_handler.key_pressed.connect(self.on_key_press)
+        self.event_handler.double_clicked.connect(self.on_double_click)
+        
+        # Also connect standard button signal
+        self.button.clicked.connect(self.on_button_click)
+    
+    def on_mouse_press(self, event):
+        """Handle mouse press events"""
+        print(f"Mouse pressed at ({event.pos().x()}, {event.pos().y()})")
+    
+    def on_key_press(self, event):
+        """Handle key press events"""
+        print(f"Key pressed: {event.key()}")
+    
+    def on_double_click(self):
+        """Handle double-click events"""
+        print("Double-click detected!")
+    
+    def on_button_click(self):
+        """Handle standard button click"""
+        print("Standard button click")
+```
+
+### Best Practices for PyQt6 + Custom UI
+
+**1. Signal/Slot Patterns:**
+```python
+# ✅ Good: Use custom signals for custom behavior
+custom_input.text_changed_custom.connect(self.validate_input)
+
+# ✅ Good: Use standard PyQt6 signals when appropriate  
+button.clicked.connect(self.handle_click)
+
+# ❌ Avoid: Don't mix signal types unnecessarily
+# custom_input.textChanged.connect(...)  # Wrong signal name
+```
+
+**2. Layout Management:**
+```python
+# ✅ Good: Use PyQt6 layouts for complex arrangements
+main_layout = QVBoxLayout()
+form_layout = QFormLayout()
+main_layout.addLayout(form_layout)
+
+# ✅ Good: Mix custom and standard widgets seamlessly
+form_layout.addRow("Name:", custom_input)
+form_layout.addRow("Age:", standard_spinbox)
+
+# ❌ Avoid: Don't fight the layout system
+# widget.setGeometry(100, 100, 200, 50)  # When using layouts
+```
+
+**3. Event Handling:**
+```python
+# ✅ Good: Use event filters for global behavior
+self.installEventFilter(self)
+
+# ✅ Good: Override specific event handlers when needed
+def keyPressEvent(self, event):
+    if event.key() == Qt.Key.Key_Escape:
+        self.close()
+    else:
+        super().keyPressEvent(event)
+
+# ❌ Avoid: Don't override paintEvent unless necessary
+```
+
+**4. Threading:**
+```python
+# ✅ Good: Use signals for thread-safe communication
+class Worker(QThread):
+    finished = pyqtSignal(dict)
+    
+    def run(self):
+        result = self.do_work()
+        self.finished.emit(result)
+
+# ✅ Good: Update UI from main thread only
+worker.finished.connect(lambda data: self.update_ui(data))
+```
+
+**5. Resource Management:**
+```python
+# ✅ Good: Clean up threads and timers
+def closeEvent(self, event):
+    if self.worker:
+        self.worker.quit()
+        self.worker.wait()
+    event.accept()
+
+# ✅ Good: Use weak references for callbacks
+import weakref
+self.callback_ref = weakref.ref(self.some_callback)
+```
+
+**6. Performance Considerations:**
+```python
+# ✅ Good: Use timers for debounced operations
+self.debounce_timer = QTimer()
+self.debounce_timer.setSingleShot(True)
+self.debounce_timer.timeout.connect(self.process_input)
+
+# ✅ Good: Update UI in batches
+def update_multiple_components(self):
+    self.label1.set_text("New text")
+    self.label2.set_text("New text")
+    self.button.setEnabled(True)
+    # Single UI update instead of multiple
+```
+
+This integration guide shows how to leverage the full power of PyQt6 while using custom UI components effectively. The custom components are designed to work seamlessly with standard PyQt6 features like signals/slots, layouts, events, and threading.
+
+---
+
 ## Component Reference
 
 ### CustomMainWindow
 
 A frameless main window with customizable styling. Does NOT include a default title bar - add `CustomTitleBar` manually if needed.
+
+**Use Cases:**
+- **Desktop Applications**: Main window for productivity apps, media players, or development tools
+- **Settings Windows**: Configuration panels for application preferences and system settings  
+- **Dashboard Interfaces**: Control panels for monitoring systems or business analytics
+- **Media Applications**: Music players, video editors, or streaming interfaces
+- **Development Tools**: IDE windows, code editors, or debugging consoles
 
 **Constructor Parameters:**
 ```python
@@ -225,15 +827,147 @@ print(colors['text_primary'])
 
 ---
 
+### CustomModal
+
+Reusable modal dialog for collecting setup inputs with built-in validation, customization options, and signal support.
+
+**Use Cases:**
+- **User Authentication**: Login screens with username/password fields and validation
+- **Settings Configuration**: Application preferences and system settings dialogs
+- **Data Entry Forms**: Contact forms, registration screens, or survey inputs
+- **Confirmation Dialogs**: Delete confirmations, save prompts, or action verification
+- **API Configuration**: Token setup, API key management, or service connections
+
+**Features:**
+- Frameless window with custom title bar
+- Built-in CustomInputBox fields for various input types
+- CustomButton for OK/Cancel actions
+- Input validation (required fields, regex patterns, custom callbacks)
+- Data collection and retrieval methods
+- Extensive color customization
+- Font customization
+- Draggable title bar
+- Dynamic field management
+- Signal support for user interactions
+
+**Constructor Parameters:**
+```python
+CustomModal(
+    parent=None,                          # Parent widget
+    title="Modal Dialog",                 # Modal title text
+    width=500,                            # Modal width in pixels
+    height=400,                           # Modal height in pixels
+    fields=[],                            # List of field dictionaries (see below)
+    ok_text="OK",                         # OK button text
+    cancel_text="Cancel",                 # Cancel button text
+    border_radius=12,                     # Border radius in pixels
+    border_width=1,                       # Border width in pixels
+    padding=20,                           # Inner padding in pixels
+    spacing=16,                           # Spacing between elements
+    animation_name="smooth",              # Animation: 'smooth', 'bounce', 'elastic', 'none'
+    # Colors
+    bg_color="#1a1a2e",                   # Background color (hex or rgba)
+    border_color="rgba(168, 85, 247, 0.3)", # Border color (hex or rgba)
+    title_color="#ffffff",                # Title text color (hex or rgba)
+    title_bg_color="rgba(168, 85, 247, 0.1)", # Title background color
+    label_color="#e8f0ff",                # Label text color (hex or rgba)
+    # Fonts
+    title_font_family="Segoe UI",         # Title font family
+    title_font_size=14,                   # Title font size in pixels
+    label_font_family="Segoe UI",         # Label font family
+    label_font_size=11,                   # Label font size in pixels
+    # Buttons
+    ok_button_color="#a855f7",            # OK button background color
+    ok_button_text_color="#ffffff",       # OK button text color
+    cancel_button_color="rgba(168, 85, 247, 0.2)", # Cancel button background
+    cancel_button_text_color="#e8f0ff",   # Cancel button text color
+    button_height=40,                     # Button height in pixels
+    button_width=120,                     # Button width in pixels
+    button_font_size=11,                  # Font size for both buttons
+    ok_button_bold=True,                  # Whether OK button text is bold
+    cancel_button_bold=False,             # Whether Cancel button text is bold
+    # Input boxes
+    input_bg_color="#0f0f1e",             # Input box background color
+    input_text_color="#ffffff",           # Input box text color
+    input_border_color="rgba(168, 85, 247, 0.3)", # Input box border color
+    input_focus_color="#a855f7",          # Input box focus color
+    input_height=40,                      # Input box height in pixels
+    # Validation
+    validation_callback=None,             # Custom validation function
+    validation_error_color="#ef4444",     # Error message color
+    # Behavior
+    modal=True,                           # Whether dialog is modal
+    draggable=True,                       # Whether title bar is draggable
+    closable=True                         # Whether close button is visible
+)
+```
+
+**Field Dictionary Format:**
+```python
+{
+    "name": "field_id",                    # Required: field identifier
+    "label": "Display Label",              # Required: display label
+    "type": "text",                        # Optional: text, password, email, number
+    "placeholder": "Enter value",          # Optional: placeholder text
+    "default_value": "initial",            # Optional: default value
+    "required": True,                      # Optional: required field
+    "validation_regex": r"^pattern$"       # Optional: regex validation
+}
+```
+
+**Key Methods:**
+- `get_inputs()` - Get all input values as dict
+- `get_input(field_name)` - Get specific field value
+- `set_input(field_name, value)` - Set specific field value
+- `clear_inputs()` - Clear all input values
+- `set_colors()` - Update colors at runtime
+- `set_title()` - Set modal title
+- `add_field()` - Add field dynamically
+- `remove_field()` - Remove field dynamically
+
+**Signals:**
+- `accepted_custom` - Emitted with data dict when OK clicked
+- `rejected_custom` - Emitted when Cancel clicked
+- `input_changed` - Emitted when any input changes (field_name, value)
+
+**Example:**
+```python
+from custom_ui_package import CustomModal
+
+fields = [
+    {"name": "username", "label": "Username", "type": "text", "required": True},
+    {"name": "password", "label": "Password", "type": "password", "required": True},
+    {"name": "email", "label": "Email", "type": "email"}
+]
+
+modal = CustomModal(
+    parent=None,
+    title="Login",
+    width=500,
+    height=350,
+    fields=fields,
+    ok_text="Login",
+    cancel_text="Cancel"
+)
+
+modal.accepted_custom.connect(lambda data: print(f"Data: {data}"))
+
+if modal.exec() == modal.DialogCode.Accepted:
+    data = modal.get_inputs()
+```
+
+---
+
 ### CustomDropdown
 
 A modern dropdown/combobox widget with glassmorphism effects.
 
-**Features:**
-- Smooth animations
-- Custom colors
-- Icon support
-- Multiple size variants
+**Use Cases:**
+- **Language Selection**: Choose interface language or locale settings
+- **Theme Selection**: Switch between light/dark modes or color schemes
+- **File Format Selection**: Choose export formats (PDF, CSV, JSON, etc.)
+- **Priority Levels**: Task priority selection (Low, Medium, High, Urgent)
+- **Status Selection**: Workflow states (Draft, Review, Approved, Published)
 
 **Variants:**
 - `CustomDropdown` - Standard size
@@ -285,6 +1019,13 @@ selected_value = dropdown.get_selected_value()
 
 A modern message dialog with draggable interface and icon support.
 
+**Use Cases:**
+- **Error Notifications**: Display critical errors, validation failures, or system issues
+- **Success Confirmations**: Show completion of operations like file saves or data submissions
+- **Warning Alerts**: Alert users about potentially harmful actions or important notices
+- **Information Messages**: Provide helpful tips, feature announcements, or status updates
+- **Confirmation Prompts**: Ask for user acknowledgment before proceeding with actions
+
 **Icon Types:**
 - `'info'` - Information icon
 - `'warning'` - Warning icon
@@ -327,6 +1068,13 @@ dialog.exec()
 ### CustomTitleBar
 
 A modern custom title bar for frameless windows with configurable colors.
+
+**Use Cases:**
+- **Application Windows**: Main application windows with custom branding and controls
+- **Dialog Windows**: Secondary windows for settings, preferences, or tool dialogs
+- **Media Players**: Music/video player windows with custom title bars
+- **Development Tools**: IDE windows, code editors, or debugging interfaces
+- **System Utilities**: Configuration tools, system monitors, or admin panels
 
 **Features:**
 - Draggable window
@@ -466,6 +1214,13 @@ if __name__ == '__main__':
 
 A reusable, fully‑configurable button widget.
 
+**Use Cases:**
+- **Form Submission**: Submit buttons for login, registration, or data entry forms
+- **Navigation Controls**: Next/Previous buttons, menu toggles, or page navigation
+- **Action Triggers**: Save, delete, export, or import operations
+- **Dialog Controls**: OK/Cancel buttons in confirmation dialogs
+- **Interactive Elements**: Play/pause controls, reset buttons, or action shortcuts
+
 **Constructor Parameters:**
 ```python
 CustomButton(
@@ -525,6 +1280,13 @@ btn_overlay.clicked.connect(self.on_next)
 ### CustomLabel
 
 A reusable, customizable label widget with global color palette support.
+
+**Use Cases:**
+- **Form Labels**: Field labels for input boxes, dropdowns, or checkboxes
+- **Status Indicators**: Display current status, progress, or system state
+- **Section Headers**: Title text for different sections or panels
+- **Descriptive Text**: Instructions, help text, or contextual information
+- **Dynamic Content**: Display changing values like counters, timers, or live data
 
 **Constructor Parameters:**
 ```python
@@ -589,6 +1351,13 @@ overlay_label.set_position(100, 50)
 ### CustomInputBox
 
 A modern, fully customizable text input component with multiple shape options, animations, and shadow effects.
+
+**Use Cases:**
+- **User Credentials**: Username and password fields for login/authentication
+- **Search Inputs**: Search bars for filtering content or finding items
+- **Configuration Values**: API keys, tokens, or system configuration settings
+- **Form Fields**: Contact information, addresses, or personal details
+- **Data Entry**: Numeric values, codes, or identifiers with validation
 
 **Features:**
 - Multiple shape variants (rounded rectangle, circular, custom path)
@@ -716,6 +1485,13 @@ window.show()
 
 A modern menu component with glassmorphism effects and smooth animations.
 
+**Use Cases:**
+- **Application Menus**: File, Edit, View, Help menus in desktop applications
+- **Context Menus**: Right-click menus for specific items or areas
+- **Toolbar Menus**: Dropdown menus attached to toolbar buttons
+- **Navigation Menus**: Application navigation or section selection
+- **Settings Panels**: Configuration options with checkable items
+
 **Constructor Parameters:**
 ```python
 CustomMenu(
@@ -797,6 +1573,13 @@ menu.item_clicked.connect(lambda action: print(f"Clicked: {action.text()}"))
 
 A modern scrollbar component with glassmorphism effects.
 
+**Use Cases:**
+- **Long Content Areas**: Scroll through large documents, articles, or data lists
+- **Data Tables**: Navigate through spreadsheet-like data or database results
+- **Text Editors**: Scroll through code files, documents, or text content
+- **Chat Interfaces**: Navigate through message history or conversation logs
+- **Image Galleries**: Browse through photo collections or media libraries
+
 **Constructor Parameters:**
 ```python
 CustomScrollBar(
@@ -874,14 +1657,11 @@ v_scrollbar.update_colors(
 # Update styling at runtime
 v_scrollbar.update_styling(
     handle_width=12,
-    border_radius=6,
-    opacity=0.9
-)
-```
+  - Use consistent styling with your application theme
 
 ---
 
-## CustomMainWindow Guide
+## CustomTextArea
 
 ### Creating a Custom Window
 
@@ -1516,6 +2296,13 @@ if __name__ == '__main__':
 
 Multi-line text input widget with custom styling, animations, and effects.
 
+**Use Cases:**
+- **Comments and Feedback**: User feedback forms, bug reports, or feature requests
+- **Code Editors**: Basic code editing, configuration files, or script input
+- **Long Text Input**: Articles, descriptions, or detailed notes
+- **Message Composition**: Email drafts, forum posts, or chat messages
+- **Configuration Files**: JSON/XML editing, settings files, or data templates
+
 **Constructor Parameters:**
 ```python
 CustomTextArea(
@@ -1559,6 +2346,13 @@ CustomTextArea(
 
 Checkbox widget with custom styling and animations.
 
+**Use Cases:**
+- **Feature Toggles**: Enable/disable application features or settings
+- **Multiple Selection**: Choose multiple options from a list (interests, skills, etc.)
+- **Settings Panels**: Application preferences, notification settings, or privacy options
+- **Terms Acceptance**: Agree to terms of service, privacy policies, or user agreements
+- **Filter Options**: Content filters, search criteria, or display preferences
+
 **Constructor Parameters:**
 ```python
 CustomCheckBox(
@@ -1597,6 +2391,13 @@ CustomCheckBox(
 
 Radio button widget with custom styling and animations.
 
+**Use Cases:**
+- **Single Choice Selection**: Choose one option from mutually exclusive choices
+- **Mode Switching**: Light/dark theme selection, view modes, or operation modes
+- **Priority Selection**: Task priorities, importance levels, or urgency indicators
+- **Payment Methods**: Credit card, PayPal, or bank transfer selection
+- **Shipping Options**: Standard, express, or overnight delivery choices
+
 **Constructor Parameters:**
 ```python
 CustomRadioButton(
@@ -1633,6 +2434,13 @@ CustomRadioButton(
 ### CustomSlider
 
 Range slider with custom track and handle styling.
+
+**Use Cases:**
+- **Volume Controls**: Audio playback volume, system sound levels, or microphone sensitivity
+- **Brightness Settings**: Screen brightness, display contrast, or lighting intensity
+- **Progress Adjustment**: Task completion percentage, skill levels, or achievement progress
+- **Value Selection**: Price ranges, age selection, or quantity controls
+- **Parameter Tuning**: Application settings, game difficulty, or customization options
 
 **Constructor Parameters:**
 ```python
@@ -1673,6 +2481,13 @@ CustomSlider(
 
 Progress indicator with animations.
 
+**Use Cases:**
+- **File Upload Progress**: Document uploads, image transfers, or data synchronization
+- **Installation Progress**: Software installation, updates, or system setup
+- **Task Completion Status**: Long-running operations, batch processing, or data analysis
+- **Download Progress**: File downloads, streaming content, or resource loading
+- **Form Submission Progress**: Multi-step processes, validation, or data processing
+
 **Constructor Parameters:**
 ```python
 CustomProgressBar(
@@ -1711,6 +2526,13 @@ CustomProgressBar(
 
 Tabbed interface with custom tab styling.
 
+**Use Cases:**
+- **Application Sections**: Organize different app areas like Home, Profile, Settings, Help
+- **Settings Categories**: Group related settings (General, Appearance, Security, Advanced)
+- **Document Tabs**: Multiple open documents, files, or editing sessions
+- **Content Categories**: Blog posts by category, products by type, or content by topic
+- **Workflow Stages**: Multi-step processes, wizards, or guided experiences
+
 **Constructor Parameters:**
 ```python
 CustomTabWidget(
@@ -1744,47 +2566,154 @@ CustomTabWidget(
 
 ### CustomCard
 
-Card container with shadows and theming.
+Card container with shadows, hover effects, and flexible content layout.
+
+**Use Cases:**
+- **User Profiles**: Display user information, avatars, and account details
+- **Product Listings**: Showcase products with images, descriptions, and pricing
+- **Dashboard Widgets**: Status panels, metrics cards, and summary information
+- **Content Previews**: Article teasers, video thumbnails, or document summaries
+- **Settings Panels**: Configuration options grouped in organized containers
 
 **Constructor Parameters:**
 ```python
 CustomCard(
-    parent=None,
-    title="Card Title",
-    width=300,
-    height=200,
-    border_radius=12,
-    border_width=1,
-    padding=16,
-    animation_name="smooth",
-    bg_color="#1a1a2e",
-    border_color="rgba(168, 85, 247, 0.3)",
-    title_color="#ffffff",
-    shadow_color="rgba(168, 85, 247, 0.2)",
-    shadow_blur=12,
-    shadow_offset_x=0,
-    shadow_offset_y=4,
-    hover_shadow_blur=20,
-    font_family="Segoe UI",
-    font_size=12
+    parent=None,                          # Parent widget
+    title="Card Title",                   # Card title text
+    width=300,                            # Card width in pixels
+    height=200,                           # Card height in pixels
+    border_radius=12,                     # Border radius in pixels
+    border_width=1,                       # Border width in pixels
+    padding=16,                           # Inner padding in pixels
+    animation_name="smooth",              # Animation: 'smooth', 'bounce', 'elastic', 'none'
+    bg_color="#1a1a2e",                   # Background color (hex or rgba)
+    border_color="rgba(168, 85, 247, 0.3)", # Border color (hex or rgba)
+    title_color="#ffffff",                # Title text color (hex or rgba)
+    shadow_color="rgba(168, 85, 247, 0.2)", # Shadow color (hex or rgba)
+    shadow_blur=12,                       # Shadow blur radius (default state)
+    shadow_offset_x=0,                    # Shadow X offset in pixels
+    shadow_offset_y=4,                    # Shadow Y offset in pixels
+    hover_shadow_blur=20,                 # Shadow blur radius on hover
+    font_family="Segoe UI",               # Font family name
+    font_size=12                          # Font size in pixels
 )
 ```
 
 **Key Methods:**
 - `set_title(title)` / `get_title()` - Manage card title
-- `set_content_widget(widget)` - Set content widget
-- `set_colors()` - Update colors
-- `set_size(width, height)` - Change dimensions
-- `set_shadow(blur_radius, offset_x, offset_y, color)` - Update shadow
+- `set_content_widget(widget)` - Set content widget (replaces existing)
+- `set_colors(bg_color, border_color, title_color, shadow_color)` - Update colors at runtime
+- `set_size(width, height)` - Change card dimensions
+- `set_border_radius(radius)` - Update border radius
+- `set_shadow(blur_radius, offset_x, offset_y, color)` - Update shadow properties
+- `set_animation(animation_name)` - Change animation type
 
 **Signals:**
 - `clicked_custom` - Emitted when card is clicked
+
+**Example Usage:**
+```python
+from custom_ui_package import CustomMainWindow, CustomCard, CustomLabel
+
+class MyApp(CustomMainWindow):
+    def __init__(self):
+        super().__init__(
+            title='Card Example',
+            width=600,
+            height=500,
+            bg_color='#0f0f1e'
+        )
+        self.setup_ui()
+    
+    def setup_ui(self):
+        # Basic card
+        card = CustomCard(
+            parent=self.content_widget,
+            title="User Profile",
+            width=300,
+            height=250,
+            border_radius=12,
+            bg_color="#1a1a2e",
+            title_color="#a855f7"
+        )
+        self.add_content(card)
+        
+        # Card with custom shadow
+        shadow_card = CustomCard(
+            parent=self.content_widget,
+            title="Statistics",
+            width=350,
+            height=200,
+            bg_color="#2d1b4e",
+            border_color="#a855f7",
+            title_color="#f3e8ff",
+            shadow_color="#a855f7",
+            shadow_blur=20,
+            shadow_offset_y=8,
+            hover_shadow_blur=30,
+            animation_name="smooth"
+        )
+        self.add_content(shadow_card)
+        
+        # Card with content widget
+        content_card = CustomCard(
+            parent=self.content_widget,
+            title="Details",
+            width=400,
+            height=300,
+            bg_color="#1a1a2e",
+            border_color="rgba(168, 85, 247, 0.5)"
+        )
+        
+        # Add content to card
+        content_label = CustomLabel(
+            parent=content_card.content_widget,
+            text="This is card content",
+            size=(350, 30),
+            font_size=12,
+            color="#f3e8ff"
+        )
+        content_card.set_content_widget(content_label)
+        self.add_content(content_card)
+        
+        # Connect click signal
+        card.clicked_custom.connect(lambda: print("Card clicked!"))
+        
+        # Update card at runtime
+        card.set_title("Updated Title")
+        card.set_colors(
+            bg_color="#2d1b4e",
+            title_color="#ec4899"
+        )
+        card.set_shadow(25, 0, 10, "#ec4899")
+```
+
+**Shadow Behavior:**
+- Default shadow is subtle for visual hierarchy
+- Hover shadow increases blur for depth effect
+- Shadow animates smoothly when hovering (if animation enabled)
+- Shadow offset controls position relative to card
+
+**Best Practices:**
+- Use cards to group related information
+- Keep card content concise and organized
+- Use consistent shadow and border colors with theme
+- Enable animations for better visual feedback
+- Set appropriate padding for content readability
+- Use `set_content_widget()` to add custom content
 
 ---
 
 ### CustomBadge
 
 Status badges/chips/tags widget.
+
+**Use Cases:**
+- **Notification Counts**: Unread messages, pending tasks, or alert indicators
+- **Status Indicators**: Online/offline status, approval states, or workflow stages
+- **Tag Systems**: Content categories, skill tags, or interest labels
+- **Priority Levels**: Task urgency, importance ranking, or severity indicators
+- **Category Labels**: Product types, file formats, or content classifications
 
 **Constructor Parameters:**
 ```python
@@ -1821,6 +2750,13 @@ CustomBadge(
 
 Loading indicator with animations.
 
+**Use Cases:**
+- **Page Loading**: Website content loading or application startup screens
+- **Background Tasks**: File processing, data synchronization, or batch operations
+- **Data Processing**: Database queries, calculations, or analysis operations
+- **File Operations**: Uploads, downloads, or file system operations
+- **Network Requests**: API calls, server communication, or remote data fetching
+
 **Constructor Parameters:**
 ```python
 CustomSpinner(
@@ -1846,39 +2782,133 @@ CustomSpinner(
 
 ### CustomToast
 
-Notification/toast messages.
+Notification/toast messages with auto-dismiss and animations.
+
+**Use Cases:**
+- **Action Confirmations**: Successful save, delete, or update operations
+- **Error Notifications**: Validation failures, connection issues, or system errors
+- **Success Messages**: Completed tasks, successful submissions, or positive feedback
+- **Warning Alerts**: Important notices, deprecated features, or caution messages
+- **Status Updates**: Connection status, background task progress, or system alerts
 
 **Constructor Parameters:**
 ```python
 CustomToast(
-    parent=None,
-    message="Notification",
-    toast_type="info",  # info, success, warning, error
-    duration=3000,
-    position="bottom-right",  # top-left, top-right, bottom-left, bottom-right
-    width=300,
-    border_radius=8,
-    animation_name="smooth",
-    bg_color=None,  # Auto-set based on toast_type
-    text_color="#ffffff",
-    border_color=None,  # Auto-set based on toast_type
-    font_family="Segoe UI",
-    font_size=11
+    parent=None,                          # Parent widget (None for screen-level)
+    message="Notification",               # Toast message text
+    toast_type="info",                    # Type: 'info', 'success', 'warning', 'error'
+    duration=3000,                        # Display duration in milliseconds (0 = no auto-dismiss)
+    position="bottom-right",              # Position: 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+    width=300,                            # Toast width in pixels
+    border_radius=8,                      # Border radius in pixels
+    animation_name="smooth",              # Animation: 'smooth', 'bounce', 'elastic', 'none'
+    bg_color=None,                        # Background color (hex/rgba). Auto-set by toast_type if None
+    text_color="#ffffff",                 # Text color (hex or rgba)
+    border_color=None,                    # Border color (hex/rgba). Auto-set by toast_type if None
+    font_family="Segoe UI",               # Font family name
+    font_size=11                          # Font size in pixels
 )
 ```
 
 **Key Methods:**
-- `show_toast()` - Display the toast
-- `set_message(message)` - Update message
-- `set_colors()` - Update colors
-- `set_duration(duration)` - Set display duration
-- `set_position(position)` - Change position
+- `show_toast()` - Display the toast notification
+- `set_message(message)` - Update toast message
+- `get_message()` - Get current toast message
+- `set_colors(bg_color, text_color, border_color)` - Update colors at runtime
+- `set_duration(duration)` - Set display duration in milliseconds
+- `set_position(position)` - Change toast position on screen
+- `get_toast_type()` - Get toast type (info, success, warning, error)
+
+**Toast Types & Auto-Colors:**
+- `"info"` - Blue background (#0ea5e9), dark blue border (#0c4a6e)
+- `"success"` - Green background (#10b981), dark green border (#064e3b)
+- `"warning"` - Orange background (#f59e0b), dark orange border (#78350f)
+- `"error"` - Red background (#ef4444), dark red border (#7f1d1d)
+
+**Example Usage:**
+```python
+from custom_ui_package import CustomToast
+
+# Basic info toast
+toast = CustomToast(
+    parent=None,
+    message="Operation completed successfully!",
+    toast_type="info",
+    duration=3000,
+    position="bottom-right"
+)
+toast.show_toast()
+
+# Success toast with custom colors
+success_toast = CustomToast(
+    parent=None,
+    message="File saved successfully",
+    toast_type="success",
+    duration=2000,
+    position="top-right",
+    width=350,
+    font_size=12
+)
+success_toast.show_toast()
+
+# Error toast with custom styling
+error_toast = CustomToast(
+    parent=None,
+    message="An error occurred. Please try again.",
+    toast_type="error",
+    duration=4000,
+    position="bottom-left",
+    bg_color="#dc2626",
+    text_color="#fecaca",
+    border_color="#991b1b",
+    border_radius=12,
+    animation_name="smooth"
+)
+error_toast.show_toast()
+
+# Warning toast without auto-dismiss
+warning_toast = CustomToast(
+    parent=None,
+    message="This action cannot be undone",
+    toast_type="warning",
+    duration=0,  # No auto-dismiss
+    position="top-center",
+    font_size=13,
+    bold=True
+)
+warning_toast.show_toast()
+
+# Update toast at runtime
+toast.set_message("New message")
+toast.set_colors(bg_color="#1e40af", text_color="#dbeafe")
+toast.set_duration(5000)
+```
+
+**Positioning Guide:**
+- `"top-left"` - Upper left corner with 20px margin
+- `"top-right"` - Upper right corner with 20px margin
+- `"bottom-left"` - Lower left corner with 20px margin
+- `"bottom-right"` - Lower right corner with 20px margin (default)
+
+**Best Practices:**
+- Use `parent=None` for screen-level toasts (recommended)
+- Set `duration=0` for persistent toasts that require user action
+- Use appropriate `toast_type` for visual feedback
+- Keep messages concise (under 100 characters)
+- Use `animation_name="none"` for immediate display
 
 ---
 
 ### CustomTooltip
 
 Hover tooltips with custom styling.
+
+**Use Cases:**
+- **Help Text**: Explain button functions, form fields, or complex features
+- **Field Explanations**: Describe input requirements, formats, or validation rules
+- **Button Descriptions**: Clarify action buttons, toolbar icons, or menu items
+- **Context Information**: Show additional details about data, status, or options
+- **Guided Assistance**: Provide onboarding tips, tutorials, or feature highlights
 
 **Constructor Parameters:**
 ```python
@@ -1910,6 +2940,13 @@ CustomTooltip(
 ### CustomAccordion
 
 Collapsible panels/sections.
+
+**Use Cases:**
+- **FAQ Sections**: Frequently asked questions with expandable answers
+- **Settings Panels**: Application preferences organized in collapsible groups
+- **Navigation Menus**: Multi-level navigation with expandable categories
+- **Content Organization**: Articles, tutorials, or documentation divided into sections
+- **Form Wizards**: Multi-step forms with collapsible sections for better UX
 
 **Constructor Parameters:**
 ```python
@@ -1943,7 +2980,7 @@ CustomAccordion(
 
 ## Components Overview
 
-### Original Components (9)
+### Original Components (10)
 | Component | Purpose | Features |
 |-----------|---------|----------|
 | `CustomMainWindow` | Main application window | Frameless, custom title bar, themeable, draggable |
@@ -1951,6 +2988,7 @@ CustomAccordion(
 | `CustomButton` | Reusable button widget | Configurable size, font, position, global color support |
 | `CustomLabel` | Reusable label widget | Configurable text, size, position, bold, global color support |
 | `CustomInputBox` | Text input widget | Multiple shapes, animations, shadow effects, custom colors, signals |
+| `CustomModal` | Modal dialog for input collection | Built-in validation, customizable fields, draggable, signal support |
 | `CustomDropdown` | Standard dropdown | Glassmorphism, smooth animations, custom colors |
 | `CustomMessageDialog` | Message dialog | Frameless, draggable, icon support |
 | `CustomMenu` | Context/application menu | Glassmorphism, icons, submenus, checkable items, custom colors |
@@ -1984,7 +3022,7 @@ CustomAccordion(
 |-----------|---------|----------|
 | `CustomAccordion` | Collapsible sections | Expand/collapse animations, multiple items, signals |
 
-**Total: 21 Components**
+**Total: 22 Components**
 
 ---
 
@@ -2410,3 +3448,21 @@ if __name__ == '__main__':
 - Consider using the same color palette throughout your application for visual consistency
 - Test your custom colors with different lighting conditions
 - Use RGBA colors for transparency effects (e.g., borders with alpha channel)
+
+---
+
+## Support
+
+If you encounter any issues or have questions, please open an issue on the [GitHub repository](https://github.com/yourusername/custom-ui-pyqt6/issues).
+
+---
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
