@@ -20,7 +20,7 @@
 
 </div>
 
-##  **What's New in v1.0.9**
+##  **What's New in v1.0.8**
 
  **22 Total Components** - Complete UI toolkit for modern desktop apps!
 

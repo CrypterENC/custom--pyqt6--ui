@@ -36,7 +36,7 @@ from .colors.color_palette import (
     set_global_color_palette
 )
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __author__ = "CrypterENC"
 __email__ = "a95899003@gmail.com"
 __description__ = "Modern PyQt6 UI components with glassmorphism effects and smooth animations"
